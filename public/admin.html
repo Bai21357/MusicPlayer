@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>管理后台</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f7; color: #1c1c1e; padding: 20px; }
+        .container { max-width: 1000px; margin: 0 auto; }
+        h1 { font-size: 28px; margin-bottom: 20px; }
+        .login-box { background: #fff; border-radius: 16px; padding: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); max-width: 400px; margin: 60px auto; }
+        .login-box input[type="password"] { width: 100%; padding: 12px 16px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; margin: 10px 0; }
+        .login-box button { width: 100%; padding: 12px; background: #6c5ce7; color: #fff; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; }
+        .login-box button:hover { background: #5a4bd1; }
+        .error { color: #e74c3c; margin-top: 10px; }
+        .admin-panel { display: none; }
+        .section { background: #fff; border-radius: 16px; padding: 20px; margin-bottom: 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.04); }
+        .section h2 { font-size: 18px; margin-bottom: 12px; }
+        .section .hint { font-size: 13px; color: #888; margin-bottom: 12px; }
+        .upload-area { margin-bottom: 16px; }
+        .upload-area label { display: inline-block; padding: 6px 14px; border: 1px solid #ddd; border-radius: 12px; cursor: pointer; transition: 0.2s; background: #f9f9f9; margin-right: 8px; }
+        .upload-area label:hover { background: #e8e8e8; border-color: #bbb; }
+        .upload-area input[type="file"] { display: none; }
+        .upload-area .batch-btn { padding: 6px 20px; background: #6c5ce7; color: #fff; border: none; border-radius: 12px; font-size: 14px; cursor: pointer; transition: 0.2s; margin-top: 10px; margin-right: 8px; }
+        .upload-area .batch-btn:hover { background: #5a4bd1; }
+        .upload-area .delete-batch-btn { padding: 6px 20px; background: #e74c3c; color: #fff; border: none; border-radius: 12px; font-size: 14px; cursor: pointer; transition: 0.2s; margin-top: 10px; }
+        .upload-area .delete-batch-btn:hover { background: #c0392b; }
+        .upload-area .file-list { font-size: 12px; color: #888; margin-top: 6px; }
+        .progress-wrap { margin-top: 12px; height: 6px; background: #eee; border-radius: 4px; overflow: hidden; display: none; }
+        .progress-wrap .progress-bar { height: 100%; width: 0%; background: linear-gradient(90deg, #6c5ce7, #a29bfe); border-radius: 4px; transition: width 0.2s; }
+        .progress-text { font-size: 13px; color: #888; margin-top: 4px; display: none; }
+        .item-list { margin-top: 12px; }
+        .item { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
+        .item:last-child { border-bottom: none; }
+        .item .checkbox { margin-right: 12px; }
+        .item .info { flex: 1; min-width: 0; }
+        .item .info .name { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .item .info .meta { font-size: 13px; color: #888; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .item .actions { display: flex; gap: 8px; align-items: center; flex-shrink: 0; flex-wrap: wrap; }
+        .item .actions .btn {
+            padding: 4px 10px;
+            border: 1px solid #ddd;
+            background: #f9f9f9;
+            border-radius: 12px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: 0.2s;
+            color: #555;
+            white-space: nowrap;
+        }
+        .item .actions .btn:hover { background: #e8e8e8; border-color: #bbb; }
+        .item .delete-btn { background: none; border: none; color: #e74c3c; cursor: pointer; font-size: 18px; padding: 4px 8px; border-radius: 50%; transition: 0.2s; }
+        .item .delete-btn:hover { background: #fde8e8; }
+        .empty-msg { color: #aaa; text-align: center; padding: 20px 0; }
+        .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #333; color: #fff; padding: 12px 24px; border-radius: 8px; opacity: 0; transition: 0.3s; pointer-events: none; }
+        .toast.show { opacity: 1; }
+        .logout-btn { float: right; background: none; border: none; color: #888; cursor: pointer; font-size: 14px; text-decoration: underline; }
+        .logout-btn:hover { color: #333; }
+        .status-text { margin-top: 8px; font-size: 14px; color: #888; }
+        .cover-thumb { 
+            width: 40px; 
+            height: 40px; 
+            border-radius: 6px; 
+            object-fit: cover; 
+            border: 1px solid #ddd; 
+            background: #f9f9f9;
+        }
+        .lyric-status { font-size: 12px; color: #888; }
+        .batch-actions { display: flex; gap: 10px; align-items: center; margin: 12px 0; flex-wrap: wrap; }
+        .batch-actions label { font-size: 14px; color: #555; cursor: pointer; }
+        .batch-actions label input { margin-right: 4px; }
+        .selected-count { font-size: 14px; color: #888; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>管理后台</h1>
+
+        <div id="loginBox" class="login-box">
+            <h2>管理员登录</h2>
+            <input type="password" id="passwordInput" placeholder="请输入管理员密码" />
+            <button id="loginBtn">登录</button>
+            <div id="loginError" class="error"></div>
+        </div>
+
+        <div id="adminPanel" class="admin-panel">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <span style="font-size: 18px; font-weight: 500;">管理面板</span>
+                <button class="logout-btn" id="logoutBtn">退出</button>
+            </div>
+
+            <div class="section">
+                <h2>歌曲管理</h2>
+                <div class="hint">批量上传：选择音频、歌词和封面文件（文件名需相同，不含扩展名），点击「批量上传」一次性处理。</div>
+
+                <div class="upload-area">
+                    <label for="audioInput">音频文件 (mp3/wav/flac等)</label>
+                    <input type="file" id="audioInput" accept="audio/*" multiple />
+                    <label for="lyricInput">歌词文件 (.lrc/.txt)</label>
+                    <input type="file" id="lyricInput" accept=".lrc,.txt" multiple />
+                    <label for="coverInput">封面图片 (jpg/png等)</label>
+                    <input type="file" id="coverInput" accept="image/*" multiple />
+                    <div class="file-list" id="fileList"></div>
+                    <button class="batch-btn" id="batchUploadBtn">批量上传</button>
+                    <div id="batchProgressWrap" class="progress-wrap"><div id="batchProgressBar" class="progress-bar"></div></div>
+                    <div id="batchProgressText" class="progress-text">0%</div>
+                    <div id="batchStatus" class="status-text"></div>
+                </div>
+
+                <div class="upload-area" style="border-top: 1px dashed #ddd; padding-top: 16px;">
+                    <label for="fileInput">单独上传音频（多选）</label>
+                    <input type="file" id="fileInput" accept="audio/*" multiple />
+                    <div id="songProgressWrap" class="progress-wrap"><div id="songProgressBar" class="progress-bar"></div></div>
+                    <div id="songProgressText" class="progress-text">0%</div>
+                    <div id="uploadStatus" class="status-text"></div>
+                </div>
+
+                <div class="batch-actions">
+                    <label><input type="checkbox" id="selectAll" /> 全选</label>
+                    <span class="selected-count" id="selectedCount">已选 0 首</span>
+                    <button class="delete-batch-btn" id="deleteBatchBtn">删除选中</button>
+                </div>
+
+                <div class="item-list" id="songList">
+                    <div class="empty-msg">加载中...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script>
+        const BACKEND_URL = (() => {
+            const { protocol, hostname, port } = window.location;
+            if (['5500','8080','1234','5173','3001'].includes(port)) {
+                return `${protocol}//${hostname}:3000`;
+            }
+            return `${protocol}//${hostname}${port ? ':' + port : ''}`;
+        })();
+
+        let adminToken = sessionStorage.getItem('adminToken') || '';
+
+        const loginBox = document.getElementById('loginBox');
+        const adminPanel = document.getElementById('adminPanel');
+        const passwordInput = document.getElementById('passwordInput');
+        const loginBtn = document.getElementById('loginBtn');
+        const loginError = document.getElementById('loginError');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const fileInput = document.getElementById('fileInput');
+        const uploadStatus = document.getElementById('uploadStatus');
+        const songList = document.getElementById('songList');
+        const toast = document.getElementById('toast');
+        const songProgressWrap = document.getElementById('songProgressWrap');
+        const songProgressBar = document.getElementById('songProgressBar');
+        const songProgressText = document.getElementById('songProgressText');
+
+        const audioInput = document.getElementById('audioInput');
+        const lyricInput = document.getElementById('lyricInput');
+        const coverInput = document.getElementById('coverInput');
+        const fileListDiv = document.getElementById('fileList');
+        const batchUploadBtn = document.getElementById('batchUploadBtn');
+        const batchProgressWrap = document.getElementById('batchProgressWrap');
+        const batchProgressBar = document.getElementById('batchProgressBar');
+        const batchProgressText = document.getElementById('batchProgressText');
+        const batchStatus = document.getElementById('batchStatus');
+
+        const selectAll = document.getElementById('selectAll');
+        const selectedCount = document.getElementById('selectedCount');
+        const deleteBatchBtn = document.getElementById('deleteBatchBtn');
+
+        function showToast(msg) {
+            toast.textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2500);
+        }
+
+        function formatTime(seconds) {
+            if (!seconds || isNaN(seconds)) return '0:00';
+            const m = Math.floor(seconds / 60);
+            const s = Math.floor(seconds % 60);
+            return `${m}:${s.toString().padStart(2, '0')}`;
+        }
+
+        function safeDecode(str) {
+            try { return decodeURIComponent(str); } catch(e) { return str; }
+        }
+
+        async function adminFetch(url, options = {}) {
+            const headers = { 'Authorization': adminToken, ...(options.headers || {}) };
+            const resp = await fetch(`${BACKEND_URL}${url}`, { ...options, headers });
+            if (resp.status === 401) {
+                sessionStorage.removeItem('adminToken');
+                adminToken = '';
+                loginBox.style.display = 'block';
+                adminPanel.style.display = 'none';
+                showToast('会话已过期，请重新登录');
+                throw new Error('未授权');
+            }
+            return resp;
+        }
+
+        async function loadSongs() {
+            try {
+                const resp = await adminFetch('/admin/songs', { method: 'GET' });
+                if (!resp.ok) throw new Error('加载失败');
+                const songs = await resp.json();
+                renderSongList(songs);
+            } catch (e) {
+                songList.innerHTML = '<div class="empty-msg">加载失败，请刷新</div>';
+            }
+        }
+
+        function renderSongList(songs) {
+            if (!songs || songs.length === 0) {
+                songList.innerHTML = '<div class="empty-msg">暂无歌曲</div>';
+                return;
+            }
+            let html = '';
+            songs.forEach(song => {
+                const dur = song.duration ? formatTime(song.duration) : '--:--';
+                let coverHtml = '';
+                if (song.coverFilepath) {
+                    const coverUrl = BACKEND_URL + song.coverFilepath;
+                    coverHtml = `<img src="${coverUrl}" class="cover-thumb" alt="封面" onerror="this.style.display='none'" />`;
+                }
+                const lyricStatus = song.lyricFilepath ? '有歌词' : '无歌词';
+                html += `
+                    <div class="item" data-id="${song.id}">
+                        <div class="checkbox">
+                            <input type="checkbox" class="song-checkbox" value="${song.id}" />
+                        </div>
+                        <div class="info">
+                            <div class="name">${song.title}</div>
+                            <div class="meta">${song.artist} · ${dur} · <span class="lyric-status">${lyricStatus}</span></div>
+                        </div>
+                        <div class="actions">
+                            ${coverHtml}
+                            <button class="btn cover-btn" data-id="${song.id}">上传封面</button>
+                            <button class="btn lyric-btn" data-id="${song.id}">上传歌词</button>
+                            <button class="delete-btn" data-id="${song.id}">✕</button>
+                        </div>
+                    </div>
+                `;
+            });
+            songList.innerHTML = html;
+
+            document.querySelectorAll('#songList .delete-btn').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const id = btn.dataset.id;
+                    if (!confirm('确定删除该歌曲吗？')) return;
+                    try {
+                        const resp = await adminFetch(`/admin/songs/${id}`, { method: 'DELETE' });
+                        if (!resp.ok) throw new Error('删除失败');
+                        showToast('删除成功');
+                        loadSongs();
+                    } catch (e) {
+                        showToast('删除失败: ' + e.message);
+                    }
+                });
+            });
+
+            document.querySelectorAll('#songList .cover-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    const id = this.dataset.id;
+                    const input = document.createElement('input');
+                    input.type = 'file';
+                    input.accept = 'image/*';
+                    input.onchange = async function() {
+                        const file = this.files[0];
+                        if (!file) return;
+                        const formData = new FormData();
+                        formData.append('cover', file);
+                        try {
+                            const resp = await adminFetch(`/admin/songs/${id}/cover`, {
+                                method: 'POST',
+                                body: formData
+                            });
+                            if (!resp.ok) throw new Error('上传失败');
+                            showToast('封面上传成功');
+                            loadSongs();
+                        } catch (e) {
+                            showToast('封面上传失败: ' + e.message);
+                        }
+                        input.remove();
+                    };
+                    input.click();
+                });
+            });
+
+            document.querySelectorAll('#songList .lyric-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    const id = this.dataset.id;
+                    const input = document.createElement('input');
+                    input.type = 'file';
+                    input.accept = '.lrc,.txt';
+                    input.onchange = async function() {
+                        const file = this.files[0];
+                        if (!file) return;
+                        const formData = new FormData();
+                        formData.append('lyric', file);
+                        try {
+                            const resp = await adminFetch(`/admin/songs/${id}/lyric`, {
+                                method: 'POST',
+                                body: formData
+                            });
+                            if (!resp.ok) throw new Error('上传失败');
+                            showToast('歌词上传成功');
+                            loadSongs();
+                        } catch (e) {
+                            showToast('歌词上传失败: ' + e.message);
+                        }
+                        input.remove();
+                    };
+                    input.click();
+                });
+            });
+
+            updateSelectedCount();
+            selectAll.addEventListener('change', function() {
+                document.querySelectorAll('.song-checkbox').forEach(cb => cb.checked = this.checked);
+                updateSelectedCount();
+            });
+            document.querySelectorAll('.song-checkbox').forEach(cb => {
+                cb.addEventListener('change', updateSelectedCount);
+            });
+        }
+
+        function updateSelectedCount() {
+            const checked = document.querySelectorAll('.song-checkbox:checked').length;
+            selectedCount.textContent = `已选 ${checked} 首`;
+            const all = document.querySelectorAll('.song-checkbox');
+            const checkedAll = document.querySelectorAll('.song-checkbox:checked');
+            if (all.length > 0) {
+                selectAll.checked = (checkedAll.length === all.length);
+            }
+        }
+
+        deleteBatchBtn.addEventListener('click', async function() {
+            const checkedBoxes = document.querySelectorAll('.song-checkbox:checked');
+            if (checkedBoxes.length === 0) {
+                showToast('请至少选择一首歌曲');
+                return;
+            }
+            if (!confirm(`确定删除选中的 ${checkedBoxes.length} 首歌曲吗？`)) return;
+            const ids = Array.from(checkedBoxes).map(cb => cb.value);
+            try {
+                const resp = await adminFetch('/admin/songs/batch', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ids })
+                });
+                if (!resp.ok) throw new Error('批量删除失败');
+                const result = await resp.json();
+                showToast(`成功删除 ${result.deleted} 首歌曲`);
+                loadSongs();
+            } catch (e) {
+                showToast('批量删除失败: ' + e.message);
+            }
+        });
+
+        async function batchUpload() {
+            const audioFiles = audioInput.files;
+            const lyricFiles = lyricInput.files;
+            const coverFiles = coverInput.files;
+            if (audioFiles.length === 0) {
+                showToast('请至少选择音频文件');
+                return;
+            }
+            batchProgressWrap.style.display = 'block';
+            batchProgressText.style.display = 'block';
+            batchProgressBar.style.width = '0%';
+            batchProgressText.textContent = '0%';
+
+            const formData = new FormData();
+            for (const file of audioFiles) formData.append('audio', file);
+            for (const file of lyricFiles) formData.append('lyric', file);
+            for (const file of coverFiles) formData.append('cover', file);
+
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', `${BACKEND_URL}/admin/batch-upload`, true);
+            xhr.setRequestHeader('Authorization', adminToken);
+
+            let lastLoaded = 0, lastTime = Date.now();
+            xhr.upload.onprogress = (e) => {
+                if (e.lengthComputable) {
+                    const percent = Math.round((e.loaded / e.total) * 100);
+                    batchProgressBar.style.width = percent + '%';
+                    const now = Date.now();
+                    const timeDiff = (now - lastTime) / 1000;
+                    if (timeDiff > 0.1) {
+                        const speed = (e.loaded - lastLoaded) / timeDiff;
+                        const speedKB = (speed / 1024).toFixed(1);
+                        const remaining = Math.round((e.total - e.loaded) / speed);
+                        let timeStr = remaining > 60 ? `${Math.floor(remaining/60)}分${remaining%60}秒` : `${remaining}秒`;
+                        batchProgressText.textContent = `${percent}%  (${speedKB} KB/s 剩余 ${timeStr})`;
+                        lastLoaded = e.loaded;
+                        lastTime = now;
+                    }
+                }
+            };
+            xhr.onload = () => {
+                batchProgressWrap.style.display = 'none';
+                batchProgressText.style.display = 'none';
+                if (xhr.status === 201) {
+                    const result = JSON.parse(xhr.responseText);
+                    showToast(`成功上传 ${result.uploaded.length} 首歌曲`);
+                    batchStatus.textContent = '';
+                    loadSongs();
+                    audioInput.value = ''; lyricInput.value = ''; coverInput.value = ''; fileListDiv.textContent = '';
+                } else {
+                    let errMsg = '上传失败';
+                    try { const err = JSON.parse(xhr.responseText); errMsg = err.error || errMsg; } catch(e) {}
+                    batchStatus.textContent = '上传失败: ' + errMsg;
+                    showToast('上传失败: ' + errMsg);
+                }
+            };
+            xhr.onerror = () => {
+                batchProgressWrap.style.display = 'none';
+                batchProgressText.style.display = 'none';
+                batchStatus.textContent = '网络错误，请重试';
+                showToast('网络错误，请重试');
+            };
+            batchStatus.textContent = `上传中... (${audioFiles.length} 个音频, ${lyricFiles.length} 个歌词, ${coverFiles.length} 个封面)`;
+            xhr.send(formData);
+        }
+
+        function updateFileList() {
+            const audioNames = Array.from(audioInput.files).map(f => f.name);
+            const lyricNames = Array.from(lyricInput.files).map(f => f.name);
+            const coverNames = Array.from(coverInput.files).map(f => f.name);
+            let text = '';
+            if (audioNames.length) text += `${audioNames.length} 个音频 `;
+            if (lyricNames.length) text += `${lyricNames.length} 个歌词 `;
+            if (coverNames.length) text += `${coverNames.length} 个封面 `;
+            fileListDiv.textContent = text || '未选择任何文件';
+        }
+
+        audioInput.addEventListener('change', updateFileList);
+        lyricInput.addEventListener('change', updateFileList);
+        coverInput.addEventListener('change', updateFileList);
+        batchUploadBtn.addEventListener('click', batchUpload);
+
+        function login() {
+            const pwd = passwordInput.value.trim();
+            if (!pwd) { loginError.textContent = '请输入密码'; return; }
+            adminToken = pwd;
+            sessionStorage.setItem('adminToken', pwd);
+            adminFetch('/admin/songs', { method: 'GET' })
+                .then(resp => {
+                    if (resp.ok) {
+                        loginBox.style.display = 'none';
+                        adminPanel.style.display = 'block';
+                        loginError.textContent = '';
+                        loadSongs();
+                        showToast('登录成功');
+                    } else {
+                        throw new Error('密码错误');
+                    }
+                })
+                .catch(() => {
+                    sessionStorage.removeItem('adminToken');
+                    adminToken = '';
+                    loginError.textContent = '密码错误，请重试';
+                });
+        }
+
+        function logout() {
+            sessionStorage.removeItem('adminToken');
+            adminToken = '';
+            loginBox.style.display = 'block';
+            adminPanel.style.display = 'none';
+            showToast('已退出');
+        }
+
+        loginBtn.addEventListener('click', login);
+        passwordInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') login(); });
+        logoutBtn.addEventListener('click', logout);
+
+        fileInput.addEventListener('change', (e) => {
+            showToast('建议使用批量上传功能');
+            fileInput.value = '';
+        });
+
+        if (adminToken) {
+            adminFetch('/admin/songs', { method: 'GET' })
+                .then(resp => {
+                    if (resp.ok) {
+                        loginBox.style.display = 'none';
+                        adminPanel.style.display = 'block';
+                        loadSongs();
+                    } else {
+                        sessionStorage.removeItem('adminToken');
+                        adminToken = '';
+                        loginBox.style.display = 'block';
+                        adminPanel.style.display = 'none';
+                    }
+                })
+                .catch(() => {
+                    sessionStorage.removeItem('adminToken');
+                    adminToken = '';
+                    loginBox.style.display = 'block';
+                    adminPanel.style.display = 'none';
+                });
+        } else {
+            loginBox.style.display = 'block';
+            adminPanel.style.display = 'none';
+        }
+    </script>
+</body>
+</html>
