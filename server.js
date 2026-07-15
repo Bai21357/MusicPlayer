@@ -7,7 +7,7 @@ const { parseFile } = require('music-metadata');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const ADMIN_PASSWORD = '123890Zzz';
+const ADMIN_PASSWORD = 'admin666';
 
 app.use(cors());
 app.use(express.json());
