@@ -19,12 +19,12 @@ sudo npm install pm2 -g
 ```
 使用git克隆项目
 ```
-git clone https://github.com/Bai21357/Music-Player.git
+git clone https://github.com/Bai21357/MusicPlayer.git
 ```
 
 2.依赖已在 package.json 中声明,切换至项目目录,然后执行：
 ```
-cd Music-Player
+cd MusicPlayer
 npm install
 ```
 
@@ -32,7 +32,7 @@ npm install
 
 启动
 ```
-pm2 start server.js --name music-player
+pm2 start server.js --name musicplayer
 ```
 
 保存进程列表并设置开机自启
@@ -42,7 +42,7 @@ pm2 startup
 ```
 重启项目
 ```
-pm2 restart music-player
+pm2 restart musicplayer
 ```
 
 ## 使用教程
@@ -85,7 +85,7 @@ http://IP:3000/admin.html
 ## 文件结构
 ```
 
-~/music-player/
+~/musicplayer/
 ├── server.js               # 后端
 ├── package.json            # 依赖声明
 ├── playlist.json           # 歌曲列表
@@ -149,8 +149,8 @@ server {
     server_name music.114514.xyz; #这里改为你自己的域名
     client_max_body_size 100m;    #修改上传文件大小限制
 
-    access_log /var/log/nginx/music-player-access.log;
-    error_log /var/log/nginx/music-player-error.log; #记录log
+    access_log /var/log/nginx/musicplayer-access.log;
+    error_log /var/log/nginx/musicplayer-error.log; #记录log
 
     # 反向代理到 Node.js
     location / {
@@ -175,7 +175,7 @@ server {
 ```
 启用站点
 ```
-sudo ln -s /etc/nginx/sites-available/music-player /etc/nginx/sites-enabled/ #创建软链
+sudo ln -s /etc/nginx/sites-available/musicplayer /etc/nginx/sites-enabled/ #创建软链
 sudo nginx -t   # 测试语法
 sudo systemctl reload nginx #重载nginx
 ```
