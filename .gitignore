@@ -1,0 +1,20 @@
+# 依赖
+node_modules/
+
+# 运行时数据：媒体文件与 JSON 记录不入库
+songs/
+lyrics/
+covers/
+playlist.json
+lyrics.json
+*.corrupt-*
+
+# 编辑器 / 系统
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# 日志
+*.log
+npm-debug.log*
